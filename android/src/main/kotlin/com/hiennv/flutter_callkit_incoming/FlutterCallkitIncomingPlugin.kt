@@ -65,8 +65,14 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
         fun initSharedInstance(context: Context, binaryMessenger: BinaryMessenger) {
             if (!::instance.isInitialized) {
                 instance = FlutterCallkitIncomingPlugin()
+            }
+            if (instance.callkitSoundPlayerManager == null) {
                 instance.callkitSoundPlayerManager = CallkitSoundPlayerManager(context)
+            }
+            if (instance.callkitNotificationManager == null) {
                 instance.callkitNotificationManager = CallkitNotificationManager(context, instance.callkitSoundPlayerManager)
+            }
+            if (instance.context == null) {
                 instance.context = context
             }
 
@@ -351,10 +357,12 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         methodChannels.remove(binding.binaryMessenger)?.setMethodCallHandler(null)
         eventChannels.remove(binding.binaryMessenger)?.setStreamHandler(null)
-        instance.callkitSoundPlayerManager?.destroy()
-        instance.callkitNotificationManager?.destroy()
-        instance.callkitSoundPlayerManager = null
-        instance.callkitNotificationManager = null
+        if (methodChannels.isEmpty()) {
+            instance.callkitSoundPlayerManager?.destroy()
+            instance.callkitNotificationManager?.destroy()
+            instance.callkitSoundPlayerManager = null
+            instance.callkitNotificationManager = null
+        }
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
@@ -373,7 +381,6 @@ class FlutterCallkitIncomingPlugin : FlutterPlugin, MethodCallHandler, ActivityA
     }
 
     override fun onDetachedFromActivity() {
-        instance.context = null
         instance.activity = null
     }
 
